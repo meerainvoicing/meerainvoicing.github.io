@@ -37,52 +37,49 @@
             scrollbar-width: none; 
         }
         
-        /* --- Background Animation Styles --- */
-        @keyframes floatUp {
-            0% { transform: translateY(0) rotate(0deg); opacity: 0.7; border-radius: 40%; }
-            100% { transform: translateY(-1000px) rotate(360deg); opacity: 0; border-radius: 60%; }
-        }
-
-        .animated-bg {
+        /* --- CSS for Waves Background Animation --- */
+        .wave-bg {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            overflow: hidden;
-            z-index: 0; /* Ensures it is behind all content */
+            z-index: 0;
+            background-color: #fef2f2; /* meera-secondary */
+            
+            /* Complex linear gradients for wave effect (using light red/border colors) */
+            background-image: radial-gradient(circle at 100% 150%, #fecaca 24%, #fef2f2 25%, #fef2f2 28%, #fecaca 29%, #fecaca 36%, #fef2f2 36%, #fef2f2 40%, transparent 40%, transparent),
+                              radial-gradient(circle at 0 150%, #fecaca 24%, #fef2f2 25%, #fef2f2 28%, #fecaca 29%, #fecaca 36%, #fef2f2 36%, #fef2f2 40%, transparent 40%, transparent),
+                              radial-gradient(circle at 50% 100%, #fef2f2 10%, #fecaca 11%, #fecaca 23%, #fef2f2 24%, #fef2f2 30%, #fecaca 31%, #fecaca 43%, #fef2f2 44%, #fef2f2 50%, #fecaca 51%, #fecaca 63%, #fef2f2 64%, #fef2f2 71%, transparent 72%, transparent),
+                              radial-gradient(circle at 100% 50%, #fef2f2 5%, #fecaca 6%, #fecaca 15%, #fef2f2 16%, #fef2f2 20%, #fecaca 21%, #fecaca 30%, #fef2f2 31%, #fef2f2 35%, #fecaca 36%, #fecaca 45%, #fef2f2 46%, #fef2f2 49%, transparent 50%, transparent),
+                              radial-gradient(circle at 0 50%, #fef2f2 5%, #fecaca 6%, #fecaca 15%, #fef2f2 16%, #fef2f2 20%, #fecaca 21%, #fecaca 30%, #fef2f2 31%, #fef2f2 35%, #fecaca 36%, #fecaca 45%, #fef2f2 46%, #fef2f2 49%, transparent 50%, transparent);
+            background-size: 50px 100px, 50px 100px, 100px 200px, 150px 100px, 150px 100px;
+            background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
+            animation: waveScroll 25s linear infinite;
         }
 
-        .animated-bg div {
-            position: absolute;
-            display: block;
-            list-style: none;
-            width: 20px;
-            height: 20px;
-            background: rgba(254, 202, 202, 0.6); /* Very light, semi-transparent red */
-            animation: floatUp 25s linear infinite;
-            bottom: -200px; /* Start below viewport */
-            border-radius: 50%;
+        @keyframes waveScroll {
+            100% {
+                /* Shifts the background position to create a smooth scrolling effect */
+                background-position: 400px 0, -400px 0, 400px 0, -400px 0, 400px 0;
+            }
         }
 
-        /* Custom starting positions/speeds for variety */
-        .animated-bg div:nth-child(1) { left: 25%; width: 80px; height: 80px; animation-duration: 15s; }
-        .animated-bg div:nth-child(2) { left: 10%; width: 20px; height: 20px; animation-duration: 25s; animation-delay: 2s; }
-        .animated-bg div:nth-child(3) { left: 70%; width: 20px; height: 20px; animation-duration: 20s; }
-        .animated-bg div:nth-child(4) { left: 40%; width: 60px; height: 60px; animation-duration: 10s; animation-delay: 0s; }
-        .animated-bg div:nth-child(5) { left: 65%; width: 40px; height: 40px; animation-duration: 30s; animation-delay: 1.5s; }
-        .animated-bg div:nth-child(6) { left: 75%; width: 100px; height: 100px; animation-duration: 35s; animation-delay: 2.5s; }
-        .animated-bg div:nth-child(7) { left: 35%; width: 150px; height: 150px; animation-duration: 40s; animation-delay: 7s; }
-        .animated-bg div:nth-child(8) { left: 50%; width: 25px; height: 25px; animation-duration: 20s; animation-delay: 4s; }
+        /* --- Custom Reset Animation (New Invoice Button) --- */
+        @keyframes pulseReset {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(0.99); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-reset {
+            animation: pulseReset 0.4s ease-in-out;
+        }
 
         /* --- Print Styles: Ensures only the invoice document is printed from the modal --- */
         @media print {
-            /* Hide all input panels, main titles, and modal control buttons */
             .print-hide, .print-hide * {
                 display: none !important;
             }
-
-            /* Ensure the modal content is visible and fills the page */
             #invoice-modal {
                 display: block !important;
                 position: relative !important; 
@@ -94,8 +91,6 @@
                 width: 100%;
                 height: auto;
             }
-
-            /* Ensure the content container takes full print area */
             #invoice-document-container {
                 margin: 0 !important;
                 padding: 5px 15px !important; 
@@ -105,16 +100,12 @@
                 max-width: none !important;
                 min-height: 100vh;
             }
-
-            /* Reset body for clean print */
             body, html {
                 padding: 0 !important;
                 margin: 0 !important;
                 background-color: white !important;
                 width: 100% !important;
             }
-            
-            /* Force all product table columns to display on print */
             #invoice-document-container table th,
             #invoice-document-container table td {
                 display: table-cell !important;
@@ -122,42 +113,31 @@
         }
     </style>
 </head>
-<!-- Body now uses the light red theme color -->
-<body class="min-h-screen bg-meera-secondary font-sans transition-all p-4 md:p-8">
+<body class="min-h-screen font-sans transition-all p-4 md:p-8">
 
-    <!-- Animated Background Container (Z-index 0) -->
-    <div class="animated-bg">
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-    </div>
+    <!-- New Waves Background Container (Z-index 0) -->
+    <div class="wave-bg"></div>
 
     <!-- Main App Container (Z-index 10) -->
     <div id="app-container" class="relative z-10">
         
-        <!-- Top Controls and Title Wrapper (NOW ALIGNED) -->
+        <!-- Top Controls and Title Wrapper (ALIGNED) -->
         <div class="max-w-4xl mx-auto print-hide">
             <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
                 <h1 class="text-3xl font-extrabold text-gray-800 mb-4 sm:mb-0">Meera Invoice Tool</h1>
-                <button onclick="resetInvoice()" class="py-2 px-6 bg-meera-primary text-white rounded-xl font-bold hover:bg-red-700 transition-transform transform hover:scale-[1.02] shadow-md">
+                <button onclick="resetInvoice()" id="resetButton" class="py-2 px-6 bg-meera-primary text-white rounded-xl font-bold hover:bg-red-700 transition-transform transform hover:scale-[1.02] shadow-md">
                     New Invoice
                 </button>
             </div>
         </div>
-        <!-- End of Aligned Header -->
 
         <!-- Error/Success Message Display -->
         <div id="message-container" class="mb-4 hidden print-hide">
             <!-- Message will be inserted here -->
         </div>
 
-        <!-- --- Single Column Layout Container --- -->
-        <div class="max-w-4xl mx-auto bg-white p-6 shadow-xl rounded-xl border border-meera-border print-hide transition-all hover:shadow-2xl">
+        <!-- --- Single Column Layout Container (Target for Reset Animation) --- -->
+        <div id="main-content-container" class="max-w-4xl mx-auto bg-white p-6 shadow-xl rounded-xl border border-meera-border print-hide transition-all hover:shadow-2xl">
             
             <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Invoice & Customer Details</h2>
 
@@ -260,9 +240,10 @@
     </div>
     
     <!-- Invoice Preview Modal -->
-    <div id="invoice-modal" class="hidden fixed inset-0 z-50 bg-gray-900 bg-opacity-75 overflow-y-auto">
+    <div id="invoice-modal" class="hidden fixed inset-0 z-50 bg-gray-900 bg-opacity-75 overflow-y-auto transition-opacity duration-300">
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div id="preview-container" class="bg-white rounded-xl w-full max-w-4xl max-h-[95vh] overflow-y-auto transform transition-all">
+            <!-- Added modal animation classes to the inner container -->
+            <div id="preview-container" class="bg-white rounded-xl w-full max-w-4xl max-h-[95vh] overflow-y-auto transform transition-all duration-300">
                 <!-- Modal Header and Actions -->
                 <div class="p-4 border-b border-meera-border flex justify-between items-center sticky top-0 bg-white z-10 print-hide">
                     <h3 class="text-xl font-bold text-meera-primary">Invoice Preview</h3>
@@ -307,6 +288,21 @@
         // --- Utility Functions ---
 
         /**
+         * Converts YYYY-MM-DD date string to DD-MM-YYYY format.
+         * @param {string} dateString Date string in YYYY-MM-DD format.
+         * @returns {string} Date string in DD-MM-YYYY format or 'N/A'.
+         */
+        const formatDate = (dateString) => {
+            if (!dateString) return 'N/A';
+            const parts = dateString.split('-'); // [YYYY, MM, DD]
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return dateString;
+        };
+
+
+        /**
          * Displays a temporary message to the user.
          * @param {string} message The message text.
          * @param {string} type 'success' or 'error'.
@@ -338,7 +334,6 @@
          * @returns {string} The formatted string.
          */
         const formatINR = (num) => {
-            // Ensure numbers are rounded to the nearest whole rupee for consistent display.
             return (Math.round(parseFloat(num) || 0)).toLocaleString('en-IN', {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
@@ -467,17 +462,53 @@
 
         // --- Modal Control Functions ---
 
+        /**
+         * Opens the modal with animation.
+         */
         const openPreviewModal = () => {
             updateInvoicePreview(); 
-            document.getElementById('invoice-modal').classList.remove('hidden');
+            const modal = document.getElementById('invoice-modal');
+            const previewContainer = document.getElementById('preview-container');
+
+            // 1. Make modal visible
+            modal.classList.remove('hidden');
+            // 2. Initial state for animation (fade in)
+            modal.style.opacity = '0';
+            previewContainer.style.transform = 'scale(0.95)';
+            previewContainer.style.opacity = '0';
+
+            // 3. Trigger transition on next frame
+            setTimeout(() => {
+                modal.style.opacity = '1';
+                previewContainer.style.transform = 'scale(1)';
+                previewContainer.style.opacity = '1';
+            }, 10);
         };
 
+        /**
+         * Closes the modal with animation.
+         */
         const closePreviewModal = () => {
-            document.getElementById('invoice-modal').classList.add('hidden');
+            const modal = document.getElementById('invoice-modal');
+            const previewContainer = document.getElementById('preview-container');
+
+            // 1. Start exit animation
+            modal.style.opacity = '0';
+            previewContainer.style.transform = 'scale(0.95)';
+            previewContainer.style.opacity = '0';
+
+            // 2. Hide after animation completes (300ms defined in CSS)
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                // Reset styles for next open
+                modal.style.opacity = '1';
+                previewContainer.style.transform = 'scale(1)';
+                previewContainer.style.opacity = '1';
+            }, 300);
         };
 
 
-        // --- Invoice Preview Rendering and Calculations (UPDATED FOR GST) ---
+        // --- Invoice Preview Rendering and Calculations (UPDATED FOR DATE FORMAT) ---
 
         /**
          * Updates the full invoice preview and calculation displays.
@@ -495,11 +526,8 @@
             const totalAmount = products.reduce((sum, p) => sum + (p.quantity * p.amount), 0);
             
             // 2. Calculate GST (5% included)
-            // GST Amount = Gross Amount * (Rate / (1 + Rate))
             const gstAmount = totalAmount * (GST_RATE / (1 + GST_RATE));
             const netAmount = totalAmount - gstAmount;
-            
-            // Round the GST amount to the nearest whole rupee for display in the summary text
             const roundedGstAmount = Math.round(gstAmount);
 
             // 3. Calculate Remaining Amount
@@ -549,11 +577,11 @@
                         </p>
                         <p class="text-sm">
                             <span class="font-semibold text-gray-600 w-28 inline-block">Invoice Date:</span>
-                            ${invoiceDate || 'N/A'}
+                            ${formatDate(invoiceDate) || 'N/A'}
                         </p>
                         <p class="text-sm">
                             <span class="font-semibold text-gray-600 w-28 inline-block">Delivery Date:</span>
-                            ${deliveryDate || 'N/A'}
+                            ${formatDate(deliveryDate) || 'N/A'}
                         </p>
                     </div>
 
@@ -713,17 +741,27 @@
         }
 
         /**
-         * Resets all data in the invoice generator.
+         * Resets all data in the invoice generator, including a visual pulse animation.
          */
         const resetInvoice = () => {
-            setInitialValues();
+            const mainContainer = document.getElementById('main-content-container');
             
+            // 1. Add pulse animation class
+            mainContainer.classList.add('animate-reset');
+            
+            // 2. Perform reset operations
+            setInitialValues();
             products = [{ article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0 }];
 
             renderProductInputs();
             updateInvoicePreview();
             closePreviewModal();
             displayMessage('Invoice data cleared. Ready for a new entry!', 'success');
+
+            // 3. Remove class after animation duration (400ms)
+            setTimeout(() => {
+                mainContainer.classList.remove('animate-reset');
+            }, 400);
         }
 
         /**
