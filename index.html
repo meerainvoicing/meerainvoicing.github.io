@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meera Invoice Generator</title>
+    
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Configuration for RED theme -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'meera-primary': '#dc2626', // **RED Theme Primary**
+                        'meera-secondary': '#fef2f2', // **Light Red/Pink Background**
+                        'meera-border': '#fecaca', // Red-200 for subtle borders
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom scrollbar styling for a cleaner look */
+        #preview-container::-webkit-scrollbar {
+            width: 0px; 
+            height: 0px;
+        }
+        #preview-container {
+            -ms-overflow-style: none;  
+            scrollbar-width: none; 
+        }
+        
+        /* --- Background Animation Styles --- */
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0.7; border-radius: 40%; }
+            100% { transform: translateY(-1000px) rotate(360deg); opacity: 0; border-radius: 60%; }
+        }
+
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0; /* Ensures it is behind all content */
+        }
+
+        .animated-bg div {
+            position: absolute;
+            display: block;
+            list-style: none;
+            width: 20px;
+            height: 20px;
+            background: rgba(254, 202, 202, 0.6); /* Very light, semi-transparent red */
+            animation: floatUp 25s linear infinite;
+            bottom: -200px; /* Start below viewport */
+            border-radius: 50%;
+        }
+
+        /* Custom starting positions/speeds for variety */
+        .animated-bg div:nth-child(1) { left: 25%; width: 80px; height: 80px; animation-duration: 15s; }
+        .animated-bg div:nth-child(2) { left: 10%; width: 20px; height: 20px; animation-duration: 25s; animation-delay: 2s; }
+        .animated-bg div:nth-child(3) { left: 70%; width: 20px; height: 20px; animation-duration: 20s; }
+        .animated-bg div:nth-child(4) { left: 40%; width: 60px; height: 60px; animation-duration: 10s; animation-delay: 0s; }
+        .animated-bg div:nth-child(5) { left: 65%; width: 40px; height: 40px; animation-duration: 30s; animation-delay: 1.5s; }
+        .animated-bg div:nth-child(6) { left: 75%; width: 100px; height: 100px; animation-duration: 35s; animation-delay: 2.5s; }
+        .animated-bg div:nth-child(7) { left: 35%; width: 150px; height: 150px; animation-duration: 40s; animation-delay: 7s; }
+        .animated-bg div:nth-child(8) { left: 50%; width: 25px; height: 25px; animation-duration: 20s; animation-delay: 4s; }
+
+        /* --- Print Styles: Ensures only the invoice document is printed from the modal --- */
+        @media print {
+            /* Hide all input panels, main titles, and modal control buttons */
+            .print-hide, .print-hide * {
+                display: none !important;
+            }
+
+            /* Ensure the modal content is visible and fills the page */
+            #invoice-modal {
+                display: block !important;
+                position: relative !important; 
+                top: 0 !important;
+                left: 0 !important;
+                background: white !important; 
+                overflow: visible !important;
+                z-index: 1000;
+                width: 100%;
+                height: auto;
+            }
+
+            /* Ensure the content container takes full print area */
+            #invoice-document-container {
+                margin: 0 !important;
+                padding: 5px 15px !important; 
+                box-shadow: none !important;
+                border: none !important;
+                width: 100% !important;
+                max-width: none !important;
+                min-height: 100vh;
+            }
+
+            /* Reset body for clean print */
+            body, html {
+                padding: 0 !important;
+                margin: 0 !important;
+                background-color: white !important;
+                width: 100% !important;
+            }
+            
+            /* Force all product table columns to display on print */
+            #invoice-document-container table th,
+            #invoice-document-container table td {
+                display: table-cell !important;
+            }
+        }
+    </style>
+</head>
+<!-- Body now uses the light red theme color -->
+<body class="min-h-screen bg-meera-secondary font-sans transition-all p-4 md:p-8">
+
+    <!-- Animated Background Container (Z-index 0) -->
+    <div class="animated-bg">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+
+    <!-- Main App Container (Z-index 10) -->
+    <div id="app-container" class="relative z-10">
+        
+        <!-- Top Controls and Title Wrapper (NOW ALIGNED) -->
+        <div class="max-w-4xl mx-auto print-hide">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+                <h1 class="text-3xl font-extrabold text-gray-800 mb-4 sm:mb-0">Meera Invoice Tool</h1>
+                <button onclick="resetInvoice()" class="py-2 px-6 bg-meera-primary text-white rounded-xl font-bold hover:bg-red-700 transition-transform transform hover:scale-[1.02] shadow-md">
+                    New Invoice
+                </button>
+            </div>
+        </div>
+        <!-- End of Aligned Header -->
+
+        <!-- Error/Success Message Display -->
+        <div id="message-container" class="mb-4 hidden print-hide">
+            <!-- Message will be inserted here -->
+        </div>
+
+        <!-- --- Single Column Layout Container --- -->
+        <div class="max-w-4xl mx-auto bg-white p-6 shadow-xl rounded-xl border border-meera-border print-hide transition-all hover:shadow-2xl">
+            
+            <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Invoice & Customer Details</h2>
+
+            <!-- Row 1: Order No, Invoice Date, Delivery Date (3-column layout) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                
+                <!-- Order No. -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Order No. (Invoice No.)</label>
+                    <input type="text" id="orderNo" class="w-full p-2 border border-meera-border rounded-lg focus:ring-meera-primary focus:border-meera-primary transition-all text-sm shadow-inner" required placeholder="e.g. 2025-001">
+                </div>
+                
+                <!-- Invoice Date -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Invoice Date</label>
+                    <input type="date" id="invoiceDate" class="w-full p-2 border border-meera-border rounded-lg focus:ring-meera-primary focus:border-meera-primary transition-all text-sm shadow-inner" required>
+                </div>
+                
+                <!-- Delivery Date -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Delivery Date</label>
+                    <input type="date" id="deliveryDate" class="w-full p-2 border border-meera-border rounded-lg focus:ring-meera-primary focus:border-meera-primary transition-all text-sm shadow-inner">
+                </div>
+            </div>
+
+            <!-- Row 2: Customer Name and Contact Number (2-column layout) -->
+            <h3 class="text-lg font-semibold text-gray-700 mt-6 mb-3 border-t pt-3">Customer Details</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                
+                <!-- Customer Name -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Customer Name</label>
+                    <input type="text" id="customerName" class="w-full p-2 border border-meera-border rounded-lg focus:ring-meera-primary focus:border-meera-primary transition-all text-sm shadow-inner" required placeholder="Customer Name">
+                </div>
+                
+                <!-- Contact Number (with +91 prefix) -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Contact Number</label>
+                    <div class="flex">
+                        <span class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-meera-border rounded-l-lg">
+                            +91
+                        </span>
+                        <input type="tel" id="customerContact" oninput="updateInvoicePreview()" 
+                               class="w-full p-2 border border-meera-border rounded-r-lg focus:ring-meera-primary focus:border-meera-primary transition-all text-sm shadow-inner" 
+                               maxlength="10" placeholder="10-digit number" required>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Row 3: Address (Full width, updated to Textarea) -->
+            <div class="space-y-4 mb-8">
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Address</label>
+                <textarea id="customerAddress" oninput="updateInvoicePreview()" rows="3" class="w-full p-2 border border-meera-border rounded-lg focus:ring-meera-primary focus:border-meera-primary transition-all text-sm shadow-inner" placeholder="Street, City, Pincode"></textarea>
+            </div>
+            
+
+            <!-- --- Product Line Items Section --- -->
+            <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2 mt-8">Product Line Items</h2>
+
+            <div id="productRowsContainer" class="space-y-6">
+                <!-- Product rows will be dynamically inserted here -->
+            </div>
+
+            <button onclick="addProductRow()" class="w-full mt-4 py-2 px-4 bg-gray-100 text-meera-primary border border-meera-primary rounded-lg hover:bg-meera-secondary transition-colors font-semibold shadow-md hover:shadow-lg">
+                + Add Product Row
+            </button>
+
+
+            <!-- --- Payment Summary Section --- -->
+            <h3 class="text-lg font-semibold text-gray-700 mt-8 mb-3 border-t pt-3">Payment Summary</h3>
+            <div class="space-y-4 max-w-sm ml-auto w-full">
+                <!-- The calculation is shown in the preview, here we show the gross total -->
+                <div class="flex justify-between items-center p-2 bg-gray-100 rounded-lg">
+                    <span class="font-bold text-gray-700">Total Amount (Gross):</span>
+                    <span id="totalAmountDisplay" class="font-extrabold text-meera-primary text-lg">₹ 0</span>
+                </div>
+
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Paid Amount (₹)</label>
+                <input type="number" id="paidAmount" value="0" min="0" oninput="updateInvoicePreview()" class="w-full p-2 border border-meera-border rounded-lg focus:ring-meera-primary focus:border-meera-primary transition-all text-sm shadow-inner">
+
+                <div class="flex justify-between items-center p-3 bg-meera-secondary rounded-lg border-2 border-meera-primary shadow-lg">
+                    <span class="font-bold text-gray-700">Remaining Amount:</span>
+                    <span id="remainingAmountDisplay" class="font-extrabold text-red-600 text-xl">₹ 0</span>
+                </div>
+            </div>
+
+
+            <!-- --- Actions Section --- -->
+            <h3 class="text-lg font-semibold text-gray-700 mt-8 mb-3 border-t pt-3">Actions</h3>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <!-- Preview Invoice Button -->
+                <button onclick="openPreviewModal()" class="flex-1 py-3 px-4 bg-meera-primary text-white rounded-xl font-bold shadow-lg hover:bg-red-700 transition-transform transform hover:scale-[1.02]">
+                    Preview Invoice
+                </button>
+            </div>
+            
+        </div>
+        <!-- --- END: Single Column Layout Container --- -->
+        
+    </div>
+    
+    <!-- Invoice Preview Modal -->
+    <div id="invoice-modal" class="hidden fixed inset-0 z-50 bg-gray-900 bg-opacity-75 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div id="preview-container" class="bg-white rounded-xl w-full max-w-4xl max-h-[95vh] overflow-y-auto transform transition-all">
+                <!-- Modal Header and Actions -->
+                <div class="p-4 border-b border-meera-border flex justify-between items-center sticky top-0 bg-white z-10 print-hide">
+                    <h3 class="text-xl font-bold text-meera-primary">Invoice Preview</h3>
+                    <div class="flex gap-3">
+                        
+                        <!-- Share via WhatsApp Button -->
+                        <button onclick="shareViaWhatsApp()" class="py-2 px-4 bg-green-500 text-white rounded-lg font-bold hover:bg-green-600 transition-colors shadow-md">
+                            Share via WhatsApp
+                        </button>
+                        
+                        <!-- Print Invoice Button -->
+                        <button onclick="printInvoice()" class="py-2 px-4 bg-meera-primary text-white rounded-lg font-bold hover:bg-red-700 transition-colors shadow-md">
+                            Print Invoice
+                        </button>
+                        <button onclick="closePreviewModal()" class="py-2 px-4 bg-gray-300 text-gray-800 rounded-lg font-bold hover:bg-gray-400 transition-colors shadow-md">
+                            Close
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Invoice Document Content (Target for printing) -->
+                <div id="invoice-document-container">
+                    <!-- Invoice HTML content will be dynamically updated here by updateInvoicePreview() -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="text/javascript">
+        // Global Constants
+        const FIRM_DETAILS = {
+            name: "Meera",
+            location: "Kishangarh",
+            mobile: "+91-9166609666",
+            addressLine: "A-4, Main Market, Kishangarh, Rajasthan, India", 
+        };
+        
+        let products = [];
+        const GST_RATE = 0.05; // 5% GST
+
+        // --- Utility Functions ---
+
+        /**
+         * Displays a temporary message to the user.
+         * @param {string} message The message text.
+         * @param {string} type 'success' or 'error'.
+         */
+        const displayMessage = (message, type) => {
+            const container = document.getElementById('message-container');
+            let baseClasses = 'px-4 py-3 rounded relative mb-4 text-sm font-semibold';
+            let messageClasses = '';
+
+            if (type === 'error') {
+                messageClasses = 'bg-red-100 border border-red-400 text-red-700';
+            } else {
+                messageClasses = 'bg-green-100 border border-green-400 text-green-700';
+            }
+
+            container.className = `${baseClasses} ${messageClasses} print-hide`; 
+            container.innerHTML = `<span>Status:</span> ${message}`;
+            container.classList.remove('hidden');
+
+            // Hide after 5 seconds
+            setTimeout(() => {
+                container.classList.add('hidden');
+            }, 5000);
+        };
+
+        /**
+         * Formats a number to Indian Rupees (INR) format.
+         * @param {number} num The number to format.
+         * @returns {string} The formatted string.
+         */
+        const formatINR = (num) => {
+            // Ensure numbers are rounded to the nearest whole rupee for consistent display.
+            return (Math.round(parseFloat(num) || 0)).toLocaleString('en-IN', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+        };
+
+        // --- Product Row Management ---
+
+        /**
+         * Renders all product input rows.
+         */
+        const renderProductInputs = () => {
+            const container = document.getElementById('productRowsContainer');
+            
+            const newHTML = products.map((product, index) => {
+                const lineTotal = formatINR(product.quantity * product.amount);
+                const isSingleRow = products.length === 1;
+
+                const safeValue = (val) => String(val).replace(/"/g, '&quot;');
+
+                return `
+                    <div data-index="${index}" class="p-4 border border-meera-border rounded-lg bg-gray-50 transition-shadow hover:shadow-md">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="font-bold text-meera-primary">Item #${index + 1}</h4>
+                            <button onclick="removeProductRow(${index})" ${isSingleRow ? 'disabled' : ''} 
+                                class="text-red-500 hover:text-red-700 font-semibold text-sm transition-colors ${isSingleRow ? 'opacity-50 cursor-not-allowed' : ''}" title="Remove Item">
+                                Remove
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
+                            <!-- Article -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Article</label>
+                                <input type="text" data-field="article" value="${safeValue(product.article)}" oninput="handleProductInput(this, ${index})" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
+                            </div>
+                            <!-- Color -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Color</label>
+                                <input type="text" data-field="color" value="${safeValue(product.color)}" oninput="handleProductInput(this, ${index})" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
+                            </div>
+                            <!-- Fabric -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Fabric</label>
+                                <input type="text" data-field="fabric" value="${safeValue(product.fabric)}" oninput="handleProductInput(this, ${index})" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
+                            </div>
+                            <!-- Design No. -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Design No.</label>
+                                <input type="text" data-field="designNo" value="${safeValue(product.designNo)}" oninput="handleProductInput(this, ${index})" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
+                            </div>
+                            <!-- Description -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Description</label>
+                                <input type="text" data-field="description" value="${safeValue(product.description)}" oninput="handleProductInput(this, ${index})" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
+                            </div>
+                            <!-- Size (MOVED HERE) -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Size</label>
+                                <input type="text" data-field="size" value="${safeValue(product.size)}" oninput="handleProductInput(this, ${index})" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
+                            </div>
+                            <!-- Quantity -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Quantity</label>
+                                <input type="number" data-field="quantity" value="${product.quantity}" oninput="handleProductInput(this, ${index})" min="0" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
+                            </div>
+                            <!-- Amount (per unit, ₹) -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Rate (₹)</label>
+                                <input type="number" data-field="amount" value="${product.amount}" oninput="handleProductInput(this, ${index})" min="0" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
+                            </div>
+                        </div>
+                        <div class="mt-3 text-right border-t pt-2 mt-4 border-gray-200">
+                            <span class="font-semibold text-gray-700">Line Total:</span>
+                            <span class="font-bold text-meera-primary ml-2 text-base">₹ ${lineTotal}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = newHTML;
+        };
+
+        /**
+         * Handles input changes for product fields.
+         */
+        const handleProductInput = (input, index) => {
+            const field = input.getAttribute('data-field');
+            let value = input.value;
+
+            if (field === 'quantity' || field === 'amount') {
+                value = parseFloat(value) || 0;
+            }
+
+            products[index][field] = value;
+            
+            const lineTotal = products[index].quantity * products[index].amount;
+            const rowDiv = input.closest(`div[data-index="${index}"]`);
+            if (rowDiv) {
+                const lineTotalSpan = rowDiv.querySelector('.font-bold.text-meera-primary.ml-2');
+                if (lineTotalSpan) {
+                    lineTotalSpan.textContent = `₹ ${formatINR(lineTotal)}`;
+                }
+            }
+            updateInvoicePreview(); 
+        };
+
+
+        const addProductRow = () => {
+            products.push({ article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0 });
+            renderProductInputs();
+            updateInvoicePreview();
+        };
+
+        const removeProductRow = (index) => {
+            if (products.length > 1) {
+                products.splice(index, 1);
+                renderProductInputs();
+                updateInvoicePreview();
+            } else if (products.length === 1) {
+                products[0] = { article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 0, amount: 0 };
+                renderProductInputs();
+                updateInvoicePreview();
+            }
+        };
+
+
+        // --- Modal Control Functions ---
+
+        const openPreviewModal = () => {
+            updateInvoicePreview(); 
+            document.getElementById('invoice-modal').classList.remove('hidden');
+        };
+
+        const closePreviewModal = () => {
+            document.getElementById('invoice-modal').classList.add('hidden');
+        };
+
+
+        // --- Invoice Preview Rendering and Calculations (UPDATED FOR GST) ---
+
+        /**
+         * Updates the full invoice preview and calculation displays.
+         */
+        const updateInvoicePreview = () => {
+            const orderNo = document.getElementById('orderNo').value;
+            const invoiceDate = document.getElementById('invoiceDate').value;
+            const deliveryDate = document.getElementById('deliveryDate').value;
+            const customerName = document.getElementById('customerName').value;
+            const customerContact = document.getElementById('customerContact').value;
+            const customerAddress = document.getElementById('customerAddress').value; 
+            const paidAmount = parseFloat(document.getElementById('paidAmount').value) || 0;
+
+            // 1. Calculate Gross Total (Total Amount)
+            const totalAmount = products.reduce((sum, p) => sum + (p.quantity * p.amount), 0);
+            
+            // 2. Calculate GST (5% included)
+            // GST Amount = Gross Amount * (Rate / (1 + Rate))
+            const gstAmount = totalAmount * (GST_RATE / (1 + GST_RATE));
+            const netAmount = totalAmount - gstAmount;
+            
+            // Round the GST amount to the nearest whole rupee for display in the summary text
+            const roundedGstAmount = Math.round(gstAmount);
+
+            // 3. Calculate Remaining Amount
+            const remainingAmount = totalAmount - paidAmount;
+
+            // Update calculation displays in the main input panel (showing Gross Total)
+            document.getElementById('totalAmountDisplay').textContent = `₹ ${formatINR(totalAmount)}`;
+            document.getElementById('remainingAmountDisplay').textContent = `₹ ${formatINR(remainingAmount)}`;
+
+            // Generate HTML for the product table in the document
+            const productTableRows = products.map((p, index) => `
+                <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} border-b border-meera-border">
+                    <td class="p-3">${p.article || 'N/A'}</td>
+                    <td class="p-3">${p.color || 'N/A'}</td>
+                    <td class="p-3 hidden sm:table-cell">${p.fabric || 'N/A'}</td>
+                    <td class="p-3 hidden sm:table-cell">${p.designNo || 'N/A'}</td>
+                    <td class="p-3">${p.description || 'N/A'}</td>
+                    <td class="p-3 hidden sm:table-cell">${p.size || 'N/A'}</td>
+                    <td class="p-3 text-right">${formatINR(p.quantity)}</td>
+                    <td class="p-3 text-right">${formatINR(p.amount)}</td>
+                    <td class="p-3 text-right font-semibold text-gray-800">₹ ${formatINR(p.quantity * p.amount)}</td>
+                </tr>
+            `).join('');
+
+            // Generate the full invoice document HTML (to be placed in the modal)
+            const invoiceHTML = `
+                <div class="p-4 md:p-6 lg:p-8">
+                <!-- Header: Firm Details -->
+                <header class="flex flex-col md:flex-row justify-between items-start border-b-4 border-meera-primary pb-4 mb-6">
+                    <div>
+                        <h1 class="text-3xl font-extrabold text-meera-primary">${FIRM_DETAILS.name}</h1>
+                        <p class="text-sm text-gray-700 font-medium">${FIRM_DETAILS.location}</p>
+                    </div>
+                    <div class="text-right mt-4 md:mt-0">
+                        <p class="text-sm font-semibold">Mobile: <span class="font-normal text-gray-700">${FIRM_DETAILS.mobile}</span></p>
+                    </div>
+                </header>
+
+                <!-- Invoice and Customer Details -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                    <!-- Invoice Details -->
+                    <div class="p-3 bg-meera-secondary rounded-lg border border-meera-border">
+                        <h2 class="text-lg font-bold text-gray-700 mb-2">Invoice Information</h2>
+                        <p class="text-sm">
+                            <span class="font-semibold text-gray-600 w-28 inline-block">Order/Invoice No:</span>
+                            <span class="font-bold text-meera-primary">${orderNo || 'N/A'}</span>
+                        </p>
+                        <p class="text-sm">
+                            <span class="font-semibold text-gray-600 w-28 inline-block">Invoice Date:</span>
+                            ${invoiceDate || 'N/A'}
+                        </p>
+                        <p class="text-sm">
+                            <span class="font-semibold text-gray-600 w-28 inline-block">Delivery Date:</span>
+                            ${deliveryDate || 'N/A'}
+                        </p>
+                    </div>
+
+                    <!-- Customer Details -->
+                    <div class="p-3 bg-meera-secondary rounded-lg border border-meera-border">
+                        <h2 class="text-lg font-bold text-gray-700 mb-2">Customer Details (Bill To)</h2>
+                        <p class="text-sm font-semibold text-gray-800">${customerName || 'Customer Name'}</p>
+                        <p class="text-sm text-gray-600">Contact: ${customerContact ? `+91 ${customerContact}` : 'N/A'}</p>
+                        <p class="text-sm text-gray-600">Address: <br>${customerAddress.replace(/\n/g, '<br>') || 'N/A'}</p>
+                    </div>
+                </div>
+
+                <!-- Product Table -->
+                <h2 class="text-xl font-bold text-gray-700 mb-4">Product Details</h2>
+                <div class="overflow-x-auto rounded-lg border border-meera-border">
+                    <table class="min-w-full table-auto text-sm text-left">
+                        <thead class="bg-meera-primary/90 text-white font-semibold sticky top-0">
+                            <tr>
+                                <th class="p-3">Article</th>
+                                <th class="p-3">Color</th>
+                                <th class="p-3 hidden sm:table-cell">Fabric</th>
+                                <th class="p-3 hidden sm:table-cell">Design No.</th>
+                                <th class="p-3">Description</th>
+                                <th class="p-3 hidden sm:table-cell">Size</th>
+                                <th class="p-3 text-right">Qty</th>
+                                <th class="p-3 text-right">Rate (₹)</th>
+                                <th class="p-3 text-right">Amount (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${productTableRows}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Total Summary (UPDATED) -->
+                <div class="flex justify-end mt-6">
+                    <div class="w-full md:w-80 p-4 bg-meera-secondary rounded-lg border border-meera-border">
+                        
+                        <!-- Subtotal (Net of GST) -->
+                        <div class="flex justify-between text-base text-gray-600 mb-1">
+                            <span>Subtotal (Net):</span>
+                            <span>₹ ${formatINR(netAmount)}</span>
+                        </div>
+                        
+                        <!-- Included GST -->
+                        <div class="flex justify-between text-base text-green-700 font-semibold mb-2 border-b pb-1 border-meera-border">
+                            <span>Included 5% GST:</span>
+                            <span>+ ₹ ${formatINR(roundedGstAmount)}</span>
+                        </div>
+
+                        <!-- Total Payable (Gross) -->
+                        <div class="flex justify-between font-bold text-gray-800 mb-2">
+                            <span>Total Payable (Gross):</span>
+                            <span>₹ ${formatINR(totalAmount)}</span>
+                        </div>
+
+                        <div class="flex justify-between text-base text-gray-600 mb-1 border-t pt-1 border-meera-border">
+                            <span>Paid Amount:</span>
+                            <span>₹ ${formatINR(paidAmount)}</span>
+                        </div>
+                        <div class="flex justify-between font-extrabold text-lg text-meera-primary border-t-2 border-meera-primary pt-2 mt-2">
+                            <span>Remaining Balance:</span>
+                            <span class="${remainingAmount < 0 ? 'text-red-600' : 'text-meera-primary'}">₹ ${formatINR(Math.abs(remainingAmount))} ${remainingAmount < 0 ? '(Credit)' : ''}</span>
+                        </div>
+                        
+                        <!-- GST Description Text (User Requirement) -->
+                        <p class="mt-3 text-xs text-gray-500 text-right italic">
+                            (Included **₹ ${formatINR(roundedGstAmount)}** GST amount in the product price @ 5%)
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <footer class="mt-10 pt-4 border-t border-meera-border text-center text-xs text-gray-500">
+                    <p>Thank you for your business. Terms and conditions apply.</p>
+                    <p>Meera, Kishangarh | ${FIRM_DETAILS.mobile}</p>
+                </footer>
+                </div>
+            `;
+
+            document.getElementById('invoice-document-container').innerHTML = invoiceHTML;
+        };
+
+        // --- Action Functions ---
+
+        /**
+         * Triggers the browser's native print dialogue for printing the invoice.
+         */
+        const printInvoice = () => {
+            const orderNo = document.getElementById('orderNo').value.trim() || 'DRAFT';
+            const customerName = document.getElementById('customerName').value.trim() || 'Customer';
+            const originalTitle = document.title;
+            
+            document.title = `Invoice_${orderNo}_${customerName}`;
+
+            window.print();
+            
+            setTimeout(() => {
+                document.title = originalTitle;
+                document.getElementById('orderNo').value = '';
+                document.getElementById('invoiceDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('deliveryDate').value = '';
+                
+                updateInvoicePreview();
+            }, 100);
+        };
+
+        /**
+         * Generates the WhatsApp share link and opens a new window.
+         * Automatically prepends 91 to a 10-digit number.
+         */
+        const shareViaWhatsApp = () => {
+            const customerName = document.getElementById('customerName').value.trim();
+            let customerContact = document.getElementById('customerContact').value.trim();
+
+            if (!customerContact) {
+                displayMessage('Please enter a mobile number (10 digits expected) to share via WhatsApp.', 'error');
+                return;
+            }
+
+            // Clean the input to get only pure digits
+            let cleanNumber = customerContact.replace(/\D/g, ''); 
+
+            // If the user entered exactly 10 digits, prepend '91'.
+            if (cleanNumber.length === 10) {
+                cleanNumber = `91${cleanNumber}`;
+            } else if (cleanNumber.length !== 12 && cleanNumber.length > 10) {
+                // Number is not 10 digits and not the 12-digit Indian format (91xxxxxxxxx).
+                displayMessage('The number entered must be exactly 10 digits.', 'error');
+                return;
+            }
+
+
+            const message = `Hello ${customerName || 'Customer'}, please find your invoice from Meera, Kishangarh attached.`;
+            const encodedMessage = encodeURIComponent(message);
+            
+            const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodedMessage}`;
+            
+            window.open(whatsappUrl, '_blank');
+            displayMessage('Opening WhatsApp link.', 'success'); 
+        };
+
+        // --- Initialization and Reset ---
+        
+        /**
+         * Sets initial values for the form fields.
+         */
+        const setInitialValues = () => {
+            document.getElementById('orderNo').value = ''; 
+            document.getElementById('invoiceDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('deliveryDate').value = '';
+            document.getElementById('customerName').value = '';
+            document.getElementById('customerContact').value = ''; 
+            document.getElementById('customerAddress').value = '';
+            document.getElementById('paidAmount').value = 0;
+        }
+
+        /**
+         * Resets all data in the invoice generator.
+         */
+        const resetInvoice = () => {
+            setInitialValues();
+            
+            products = [{ article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0 }];
+
+            renderProductInputs();
+            updateInvoicePreview();
+            closePreviewModal();
+            displayMessage('Invoice data cleared. Ready for a new entry!', 'success');
+        }
+
+        /**
+         * Sets initial values and event listeners on app load.
+         */
+        const initializeApp = () => {
+            setInitialValues();
+
+            if (products.length === 0) {
+                 products.push({ article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0 });
+            }
+
+            const formInputs = document.querySelectorAll('#orderNo, #invoiceDate, #deliveryDate, #customerName, #customerAddress, #paidAmount');
+            formInputs.forEach(input => {
+                input.addEventListener('input', updateInvoicePreview);
+            });
+            
+            renderProductInputs();
+            updateInvoicePreview();
+        };
+
+        // Initialize the app once the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+    </script>
+</body>
+</html>
