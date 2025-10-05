@@ -37,7 +37,7 @@
             scrollbar-width: none; 
         }
         
-        /* --- CSS for Waves Background Animation --- */
+        /* --- NEW Subtle Geometric Shift Animation --- */
         .wave-bg {
             position: fixed;
             top: 0;
@@ -47,22 +47,15 @@
             z-index: 0;
             background-color: #fef2f2; /* meera-secondary */
             
-            /* Complex linear gradients for wave effect (using light red/border colors) */
-            background-image: radial-gradient(circle at 100% 150%, #fecaca 24%, #fef2f2 25%, #fef2f2 28%, #fecaca 29%, #fecaca 36%, #fef2f2 36%, #fef2f2 40%, transparent 40%, transparent),
-                              radial-gradient(circle at 0 150%, #fecaca 24%, #fef2f2 25%, #fef2f2 28%, #fecaca 29%, #fecaca 36%, #fef2f2 36%, #fef2f2 40%, transparent 40%, transparent),
-                              radial-gradient(circle at 50% 100%, #fef2f2 10%, #fecaca 11%, #fecaca 23%, #fef2f2 24%, #fef2f2 30%, #fecaca 31%, #fecaca 43%, #fef2f2 44%, #fef2f2 50%, #fecaca 51%, #fecaca 63%, #fef2f2 64%, #fef2f2 71%, transparent 72%, transparent),
-                              radial-gradient(circle at 100% 50%, #fef2f2 5%, #fecaca 6%, #fecaca 15%, #fef2f2 16%, #fef2f2 20%, #fecaca 21%, #fecaca 30%, #fef2f2 31%, #fef2f2 35%, #fecaca 36%, #fecaca 45%, #fef2f2 46%, #fef2f2 49%, transparent 50%, transparent),
-                              radial-gradient(circle at 0 50%, #fef2f2 5%, #fecaca 6%, #fecaca 15%, #fef2f2 16%, #fef2f2 20%, #fecaca 21%, #fecaca 30%, #fef2f2 31%, #fef2f2 35%, #fecaca 36%, #fecaca 45%, #fef2f2 46%, #fef2f2 49%, transparent 50%, transparent);
-            background-size: 50px 100px, 50px 100px, 100px 200px, 150px 100px, 150px 100px;
-            background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
-            animation: waveScroll 25s linear infinite;
+            /* Subtle moving dot pattern (replacing complex waves) */
+            background-image: radial-gradient(#fecaca 1px, transparent 0);
+            background-size: 40px 40px;
+            animation: backgroundMove 30s linear infinite;
         }
 
-        @keyframes waveScroll {
-            100% {
-                /* Shifts the background position to create a smooth scrolling effect */
-                background-position: 400px 0, -400px 0, 400px 0, -400px 0, 400px 0;
-            }
+        @keyframes backgroundMove {
+            from { background-position: 0 0; }
+            to { background-position: 40px 40px; }
         }
 
         /* --- Custom Reset Animation (New Invoice Button) --- */
@@ -115,7 +108,7 @@
 </head>
 <body class="min-h-screen font-sans transition-all p-4 md:p-8">
 
-    <!-- New Waves Background Container (Z-index 0) -->
+    <!-- New Geometric Background Container (Z-index 0) -->
     <div class="wave-bg"></div>
 
     <!-- Main App Container (Z-index 10) -->
@@ -124,7 +117,13 @@
         <!-- Top Controls and Title Wrapper (ALIGNED) -->
         <div class="max-w-4xl mx-auto print-hide">
             <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
-                <h1 class="text-3xl font-extrabold text-gray-800 mb-4 sm:mb-0">Meera Invoice Tool</h1>
+                <!-- START: ELEGANT TITLE STRUCTURE -->
+                <h1 class="mb-4 sm:mb-0">
+                    <span class="text-5xl md:text-6xl font-black block text-meera-primary leading-none">Meera</span>
+                    <span class="text-xl md:text-2xl font-semibold text-gray-600 tracking-wider">Invoice Tool</span>
+                </h1>
+                <!-- END: ELEGANT TITLE STRUCTURE -->
+
                 <button onclick="resetInvoice()" id="resetButton" class="py-2 px-6 bg-meera-primary text-white rounded-xl font-bold hover:bg-red-700 transition-transform transform hover:scale-[1.02] shadow-md">
                     New Invoice
                 </button>
@@ -389,10 +388,18 @@
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Description</label>
                                 <input type="text" data-field="description" value="${safeValue(product.description)}" oninput="handleProductInput(this, ${index})" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
                             </div>
-                            <!-- Size (MOVED HERE) -->
+                            <!-- Size -->
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Size</label>
                                 <input type="text" data-field="size" value="${safeValue(product.size)}" oninput="handleProductInput(this, ${index})" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
+                            </div>
+                            <!-- Stitched (NEW FIELD) -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Stitched</label>
+                                <select data-field="stitched" oninput="handleProductInput(this, ${index})" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
+                                    <option value="No" ${product.stitched === 'No' ? 'selected' : ''}>No</option>
+                                    <option value="Yes" ${product.stitched === 'Yes' ? 'selected' : ''}>Yes</option>
+                                </select>
                             </div>
                             <!-- Quantity -->
                             <div>
@@ -442,7 +449,8 @@
 
 
         const addProductRow = () => {
-            products.push({ article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0 });
+            // Added new default field: stitched
+            products.push({ article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0, stitched: 'No' });
             renderProductInputs();
             updateInvoicePreview();
         };
@@ -453,7 +461,8 @@
                 renderProductInputs();
                 updateInvoicePreview();
             } else if (products.length === 1) {
-                products[0] = { article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 0, amount: 0 };
+                // Reset the single remaining product instead of removing the row
+                products[0] = { article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 0, amount: 0, stitched: 'No' };
                 renderProductInputs();
                 updateInvoicePreview();
             }
@@ -508,7 +517,7 @@
         };
 
 
-        // --- Invoice Preview Rendering and Calculations (UPDATED FOR DATE FORMAT) ---
+        // --- Invoice Preview Rendering and Calculations ---
 
         /**
          * Updates the full invoice preview and calculation displays.
@@ -546,6 +555,7 @@
                     <td class="p-3 hidden sm:table-cell">${p.designNo || 'N/A'}</td>
                     <td class="p-3">${p.description || 'N/A'}</td>
                     <td class="p-3 hidden sm:table-cell">${p.size || 'N/A'}</td>
+                    <td class="p-3 hidden sm:table-cell font-semibold">${p.stitched || 'N/A'}</td> <!-- NEW STITCHED DATA -->
                     <td class="p-3 text-right">${formatINR(p.quantity)}</td>
                     <td class="p-3 text-right">${formatINR(p.amount)}</td>
                     <td class="p-3 text-right font-semibold text-gray-800">₹ ${formatINR(p.quantity * p.amount)}</td>
@@ -606,6 +616,7 @@
                                 <th class="p-3 hidden sm:table-cell">Design No.</th>
                                 <th class="p-3">Description</th>
                                 <th class="p-3 hidden sm:table-cell">Size</th>
+                                <th class="p-3 hidden sm:table-cell">Stitched</th> <!-- NEW HEADER -->
                                 <th class="p-3 text-right">Qty</th>
                                 <th class="p-3 text-right">Rate (₹)</th>
                                 <th class="p-3 text-right">Amount (₹)</th>
@@ -657,7 +668,7 @@
 
                 <!-- Footer -->
                 <footer class="mt-10 pt-4 border-t border-meera-border text-center text-xs text-gray-500">
-                    <p>Thank you for your business. Terms and conditions apply.</p>
+                    <p>Thank thank you for your business. Terms and conditions apply.</p>
                     <p>Meera, Kishangarh | ${FIRM_DETAILS.mobile}</p>
                 </footer>
                 </div>
@@ -751,7 +762,8 @@
             
             // 2. Perform reset operations
             setInitialValues();
-            products = [{ article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0 }];
+            // Updated to include new 'stitched' default
+            products = [{ article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0, stitched: 'No' }];
 
             renderProductInputs();
             updateInvoicePreview();
@@ -771,7 +783,8 @@
             setInitialValues();
 
             if (products.length === 0) {
-                 products.push({ article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0 });
+                 // Updated to include new 'stitched' default
+                 products.push({ article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0, stitched: 'No' });
             }
 
             const formInputs = document.querySelectorAll('#orderNo, #invoiceDate, #deliveryDate, #customerName, #customerAddress, #paidAmount');
