@@ -379,7 +379,7 @@
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Design No.</label>
                                 <input type="text" data-field="designNo" value="${safeValue(product.designNo)}" oninput="handleProductInput(this, ${index})" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
                             </div>
-                            <!-- Status (NEW FIELD) -->
+                            <!-- Status (NEW FIELD - UPDATED OPTION TEXT/VALUE) -->
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Status</label>
                                 <select data-field="status" oninput="handleProductInput(this, ${index})" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
@@ -387,7 +387,7 @@
                                     <option value="Work Order" ${product.status === 'Work Order' ? 'selected' : ''}>Work Order</option>
                                     <option value="Work + Dye Order" ${product.status === 'Work + Dye Order' ? 'selected' : ''}>Work + Dye Order</option>
                                     <option value="Without Stitch" ${product.status === 'Without Stitch' ? 'selected' : ''}>Without Stitch</option>
-                                    <option value="Fall Piku & Finished" ${product.status === 'Fall Piku & Finished' ? 'selected' : ''}>Fall Piku & Finished</option>
+                                    <option value="Fall-Piku & Finishing" ${product.status === 'Fall-Piku & Finishing' ? 'selected' : ''}>Fall-Piku & Finishing</option>
                                 </select>
                             </div>
                             <!-- Description -->
