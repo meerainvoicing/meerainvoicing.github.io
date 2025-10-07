@@ -277,6 +277,7 @@
             addressLine: "A-4, Main Market, Kishangarh, Rajasthan, India", 
         };
         
+        // Removed 'size' from initial product structure
         let products = [];
         const GST_RATE = 0.05; // 5% GST
 
@@ -379,7 +380,7 @@
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Design No.</label>
                                 <input type="text" data-field="designNo" value="${safeValue(product.designNo)}" oninput="handleProductInput(this, ${index})" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
                             </div>
-                            <!-- Status (NEW FIELD - UPDATED OPTION TEXT/VALUE) -->
+                            <!-- Status -->
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Status</label>
                                 <select data-field="status" oninput="handleProductInput(this, ${index})" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
@@ -395,11 +396,8 @@
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Description</label>
                                 <input type="text" data-field="description" value="${safeValue(product.description)}" oninput="handleProductInput(this, ${index})" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
                             </div>
-                            <!-- Size -->
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">Size</label>
-                                <input type="text" data-field="size" value="${safeValue(product.size)}" oninput="handleProductInput(this, ${index})" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
-                            </div>
+                            <!-- Size field REMOVED from HTML -->
+                            
                             <!-- Quantity -->
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Quantity</label>
@@ -448,8 +446,8 @@
 
 
         const addProductRow = () => {
-            // Updated default product to use 'status' field
-            products.push({ article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0, status: 'Only Stitch' });
+            // Removed 'size' from default product structure
+            products.push({ article: '', color: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0, status: 'Only Stitch' });
             renderProductInputs();
             updateInvoicePreview();
         };
@@ -460,8 +458,8 @@
                 renderProductInputs();
                 updateInvoicePreview();
             } else if (products.length === 1) {
-                // Reset the single remaining product
-                products[0] = { article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 0, amount: 0, status: 'Only Stitch' };
+                // Reset the single remaining product (Removed 'size')
+                products[0] = { article: '', color: '', fabric: '', designNo: '', description: '', quantity: 0, amount: 0, status: 'Only Stitch' };
                 renderProductInputs();
                 updateInvoicePreview();
             }
@@ -527,7 +525,6 @@
             const deliveryDate = document.getElementById('deliveryDate').value;
             const customerName = document.getElementById('customerName').value;
             const customerContact = document.getElementById('customerContact').value;
-            // Address field is removed, so we remove its retrieval
             const paidAmount = parseFloat(document.getElementById('paidAmount').value) || 0;
 
             // 1. Calculate Gross Total (Total Amount)
@@ -557,9 +554,8 @@
                     <td class="p-3">${p.color || 'N/A'}</td>
                     <td class="p-3 hidden sm:table-cell">${p.fabric || 'N/A'}</td>
                     <td class="p-3 hidden sm:table-cell">${p.designNo || 'N/A'}</td>
-                    <td class="p-3 hidden sm:table-cell font-semibold text-xs">${p.status || 'N/A'}</td> <!-- NEW STATUS DATA -->
+                    <td class="p-3 hidden sm:table-cell font-semibold text-xs">${p.status || 'N/A'}</td>
                     <td class="p-3">${p.description || 'N/A'}</td>
-                    <td class="p-3 hidden sm:table-cell">${p.size || 'N/A'}</td>
                     <td class="p-3 text-right">${formatINR(p.quantity)}</td>
                     <td class="p-3 text-right">${formatINR(p.amount)}</td>
                     <td class="p-3 text-right font-semibold text-gray-800">₹ ${formatINR(p.quantity * p.amount)}</td>
@@ -604,7 +600,6 @@
                         <h2 class="text-lg font-bold text-gray-700 mb-2">Customer Details (Bill To)</h2>
                         <p class="text-sm font-semibold text-gray-800">${customerName || 'Customer Name'}</p>
                         <p class="text-sm text-gray-600">Contact: ${customerContact ? `+91 ${customerContact}` : 'N/A'}</p>
-                        <!-- Removed Address line from preview -->
                     </div>
                 </div>
 
@@ -618,9 +613,8 @@
                                 <th class="p-3">Color</th>
                                 <th class="p-3 hidden sm:table-cell">Fabric</th>
                                 <th class="p-3 hidden sm:table-cell">Design No.</th>
-                                <th class="p-3 hidden sm:table-cell">Status</th> <!-- NEW HEADER -->
+                                <th class="p-3 hidden sm:table-cell">Status</th>
                                 <th class="p-3">Description</th>
-                                <th class="p-3 hidden sm:table-cell">Size</th>
                                 <th class="p-3 text-right">Qty</th>
                                 <th class="p-3 text-right">Rate (₹)</th>
                                 <th class="p-3 text-right">Amount (₹)</th>
@@ -754,7 +748,6 @@
             document.getElementById('deliveryDate').value = '';
             document.getElementById('customerName').value = '';
             document.getElementById('customerContact').value = ''; 
-            // Removed document.getElementById('customerAddress').value = '';
             document.getElementById('paidAmount').value = 0;
         }
 
@@ -769,8 +762,8 @@
             
             // 2. Perform reset operations
             setInitialValues();
-            // Updated to use new 'status' default
-            products = [{ article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0, status: 'Only Stitch' }];
+            // Removed 'size' from default product structure
+            products = [{ article: '', color: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0, status: 'Only Stitch' }];
 
             renderProductInputs();
             updateInvoicePreview();
@@ -790,11 +783,10 @@
             setInitialValues();
 
             if (products.length === 0) {
-                 // Updated to use new 'status' default
-                 products.push({ article: '', color: '', size: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0, status: 'Only Stitch' });
+                 // Removed 'size' from default product structure
+                 products.push({ article: '', color: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0, status: 'Only Stitch' });
             }
 
-            // Removed customerAddress from query selector
             const formInputs = document.querySelectorAll('#orderNo, #invoiceDate, #deliveryDate, #customerName, #customerContact, #paidAmount');
             formInputs.forEach(input => {
                 input.addEventListener('input', updateInvoicePreview);
