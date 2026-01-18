@@ -176,7 +176,7 @@
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-1">Contact Number</label>
                     <div class="flex">
-                        <!-- Country Code Dropdown (NEW/RESTORED) -->
+                        <!-- Country Code Dropdown -->
                         <select id="countryCode" oninput="updateInvoicePreview()"
                                 class="p-2 border border-meera-border rounded-l-lg bg-gray-50 focus:ring-meera-primary focus:border-meera-primary transition-all text-sm shadow-inner max-w-[120px]">
                             <!-- Options dynamically populated by JS -->
@@ -219,10 +219,10 @@
             </div>
 
 
-            <!-- --- Actions Section --- -->
+            <!-- --- Actions Section (MODIFIED) --- -->
             <h3 class="text-lg font-semibold text-gray-700 mt-8 mb-3 border-t pt-3">Actions</h3>
             <div class="flex flex-col sm:flex-row gap-4">
-                <!-- Preview Invoice Button -->
+                <!-- PREVIEW BUTTON RESTORED -->
                 <button onclick="openPreviewModal()" class="flex-1 py-3 px-4 bg-meera-primary text-white rounded-xl font-bold shadow-lg hover:bg-red-700 transition-transform transform hover:scale-[1.02]">
                     Preview Invoice
                 </button>
@@ -233,12 +233,12 @@
         
     </div>
     
-    <!-- Invoice Preview Modal -->
+    <!-- Invoice Preview Modal (FULL FUNCTIONALITY RESTORED) -->
     <div id="invoice-modal" class="hidden fixed inset-0 z-50 bg-gray-900 bg-opacity-75 overflow-y-auto transition-opacity duration-300">
         <div class="flex items-center justify-center min-h-screen p-4">
             <!-- Added modal animation classes to the inner container -->
             <div id="preview-container" class="bg-white rounded-xl w-full max-w-4xl max-h-[95vh] overflow-y-auto transform transition-all duration-300">
-                <!-- Modal Header and Actions -->
+                <!-- Modal Header and Actions (FULL) -->
                 <div class="p-4 border-b border-meera-border flex justify-between items-center sticky top-0 bg-white z-10 print-hide">
                     <h3 class="text-xl font-bold text-meera-primary">Invoice Preview</h3>
                     <div class="flex gap-3">
@@ -248,17 +248,19 @@
                             Share via WhatsApp
                         </button>
                         
-                        <!-- Print Invoice Button -->
+                        <!-- Print Invoice Button RESTORED -->
                         <button onclick="printInvoice()" class="py-2 px-4 bg-meera-primary text-white rounded-lg font-bold hover:bg-red-700 transition-colors shadow-md">
                             Print Invoice
                         </button>
+                        
+                        <!-- Close Button -->
                         <button onclick="closePreviewModal()" class="py-2 px-4 bg-gray-300 text-gray-800 rounded-lg font-bold hover:bg-gray-400 transition-colors shadow-md">
                             Close
                         </button>
                     </div>
                 </div>
 
-                <!-- Invoice Document Content (Target for printing) -->
+                <!-- Invoice Document Content (Target for PDF/Preview) -->
                 <div id="invoice-document-container">
                     <!-- Invoice HTML content will be dynamically updated here by updateInvoicePreview() -->
                 </div>
@@ -273,6 +275,7 @@
             name: "Meera",
             location: "Kishangarh",
             mobile: "+91-9166609666",
+            gstin: "08ACDFM7857J1ZN", // Firm GSTIN added
             addressLine: "A-4, Main Market, Kishangarh, Rajasthan, India", 
         };
         
@@ -286,7 +289,6 @@
          */
         const getSelectedCountryCode = () => {
              const selectElement = document.getElementById('countryCode');
-             // Uses the actual value of the select element now
              return selectElement ? selectElement.value : '91';
         }
 
@@ -446,7 +448,6 @@
 
 
         const addProductRow = () => {
-            // FIX: Set default status to 'Ready'
             products.push({ article: '', color: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0, status: 'Ready' });
             renderProductInputs();
             updateInvoicePreview();
@@ -458,7 +459,6 @@
                 renderProductInputs();
                 updateInvoicePreview();
             } else if (products.length === 1) {
-                // FIX: Set default status to 'Ready' on reset
                 products[0] = { article: '', color: '', fabric: '', designNo: '', description: '', quantity: 0, amount: 0, status: 'Ready' };
                 renderProductInputs();
                 updateInvoicePreview();
@@ -514,7 +514,7 @@
         };
 
 
-        // --- Invoice Preview Rendering and Calculations (Updated to SGST/CGST) ---
+        // --- Invoice Preview Rendering and Calculations ---
 
         /**
          * Updates the full invoice preview and calculation displays.
@@ -572,6 +572,7 @@
                     <div>
                         <h1 class="text-3xl font-extrabold text-meera-primary">${FIRM_DETAILS.name}</h1>
                         <p class="text-sm text-gray-700 font-medium">${FIRM_DETAILS.location}</p>
+                        <p class="text-xs text-gray-600 mt-1 font-bold">GSTIN/UIN: ${FIRM_DETAILS.gstin}</p>
                     </div>
                     <div class="text-right mt-4 md:mt-0">
                         <p class="text-sm font-semibold">Mobile: <span class="font-normal text-gray-700">${FIRM_DETAILS.mobile}</span></p>
@@ -677,12 +678,12 @@
             document.getElementById('invoice-document-container').innerHTML = invoiceHTML;
         };
 
-        // --- Action Functions ---
-
         /**
          * Triggers the browser's native print dialogue for printing the invoice.
          */
         const printInvoice = () => {
+            updateInvoicePreview();
+
             const orderNo = document.getElementById('orderNo').value.trim() || 'DRAFT';
             const customerName = document.getElementById('customerName').value.trim() || 'Customer';
             const originalTitle = document.title;
@@ -696,10 +697,10 @@
                 document.getElementById('orderNo').value = '';
                 document.getElementById('invoiceDate').value = new Date().toISOString().split('T')[0];
                 document.getElementById('deliveryDate').value = '';
-                
                 updateInvoicePreview();
             }, 100);
         };
+
 
         /**
          * Generates the WhatsApp share link and opens a new window.
@@ -714,10 +715,7 @@
                 return;
             }
 
-            // Clean the input to get only pure digits
             let cleanNumber = customerContact.replace(/\D/g, ''); 
-
-            // Prepend the selected country code to the cleaned number
             const fullNumber = countryCode + cleanNumber;
 
             const message = `Hello ${customerName || 'Customer'}, please find your invoice from Meera, Kishangarh attached.`;
@@ -732,7 +730,7 @@
         // --- Initialization and Reset ---
         
         /**
-         * Populates the country code dropdown on load (Restored).
+         * Populates the country code dropdown on load.
          */
         const populateCountryCodes = () => {
             const codes = [
@@ -771,22 +769,17 @@
             document.getElementById('customerContact').value = ''; 
             document.getElementById('paidAmount').value = 0;
         }
-
+        
         /**
          * Resets all data in the invoice generator, including a visual pulse animation.
          */
         const resetInvoice = () => {
             const mainContainer = document.getElementById('main-content-container');
-            
-            // 1. Add pulse animation class
             mainContainer.classList.add('animate-reset');
             
-            // 2. Perform reset operations
             setInitialValues();
-            // Ensure country code is reset to default India
             document.getElementById('countryCode').value = '91';
             
-            // FIX: Set default status to 'Ready'
             products = [{ article: '', color: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0, status: 'Ready' }];
 
             renderProductInputs();
@@ -794,7 +787,6 @@
             closePreviewModal();
             displayMessage('Invoice data cleared. Ready for a new entry!', 'success');
 
-            // 3. Remove class after animation duration (400ms)
             setTimeout(() => {
                 mainContainer.classList.remove('animate-reset');
             }, 400);
@@ -804,11 +796,10 @@
          * Sets initial values and event listeners on app load.
          */
         const initializeApp = () => {
-            populateCountryCodes(); // Populate the dropdown (Restored)
+            populateCountryCodes();
             setInitialValues();
 
             if (products.length === 0) {
-                // FIX: Set default status to 'Ready'
                  products.push({ article: '', color: '', fabric: '', designNo: '', description: '', quantity: 1, amount: 0, status: 'Ready' });
             }
 
