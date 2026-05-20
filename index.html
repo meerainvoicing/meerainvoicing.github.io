@@ -369,7 +369,7 @@
                             </div>
                             <!-- Color -->
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">Color</label>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Colour</label>
                                 <input type="text" data-field="color" value="${safeValue(product.color)}" oninput="handleProductInput(this, ${index})" class="w-full p-2 border border-meera-border rounded-lg text-sm shadow-inner">
                             </div>
                             <!-- Fabric -->
@@ -583,9 +583,9 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                     <!-- Invoice Details -->
                     <div class="p-3 bg-meera-secondary rounded-lg border border-meera-border">
-                        <h2 class="text-lg font-bold text-gray-700 mb-2">Invoice Information</h2>
+                        <h2 class="text-lg font-bold text-gray-700 mb-2">Sales Order</h2>
                         <p class="text-sm">
-                            <span class="font-semibold text-gray-600 w-28 inline-block">Order/Invoice No:</span>
+                            <span class="font-semibold text-gray-600 w-28 inline-block">Order No:</span>
                             <span class="font-bold text-meera-primary">${orderNo || 'N/A'}</span>
                         </p>
                         <p class="text-sm">
@@ -600,7 +600,7 @@
 
                     <!-- Customer Details -->
                     <div class="p-3 bg-meera-secondary rounded-lg border border-meera-border">
-                        <h2 class="text-lg font-bold text-gray-700 mb-2">Customer Details (Bill To)</h2>
+                        <h2 class="text-lg font-bold text-gray-700 mb-2">Customer Details</h2>
                         <p class="text-sm font-semibold text-gray-800">${customerName || 'Customer Name'}</p>
                         <p class="text-sm text-gray-600">Contact: +${selectedCode} ${customerContact || 'N/A'}</p>
                     </div>
@@ -613,7 +613,7 @@
                         <thead class="bg-meera-primary/90 text-white font-semibold sticky top-0">
                             <tr>
                                 <th class="p-3">Article</th>
-                                <th class="p-3">Color</th>
+                                <th class="p-3">Colour</th>
                                 <th class="p-3 hidden sm:table-cell">Fabric</th>
                                 <th class="p-3 hidden sm:table-cell">Design No.</th>
                                 <th class="p-3 hidden sm:table-cell">Status</th>
