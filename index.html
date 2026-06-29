@@ -688,7 +688,7 @@
             const customerName = document.getElementById('customerName').value.trim() || 'Customer';
             const originalTitle = document.title;
             
-            document.title = `Invoice_${orderNo}_${customerName}`;
+            document.title = `Voucher_${orderNo}_${customerName}`;
 
             window.print();
             
@@ -718,7 +718,7 @@
             let cleanNumber = customerContact.replace(/\D/g, ''); 
             const fullNumber = countryCode + cleanNumber;
 
-            const message = `Hello ${customerName || 'Customer'}, please find your invoice from Meera, Kishangarh attached.`;
+            const message = `Hello ${customerName || 'Customer'}, please find your voucher from Meera, Kishangarh attached.`;
             const encodedMessage = encodeURIComponent(message);
             
             const whatsappUrl = `https://wa.me/${fullNumber}?text=${encodedMessage}`;
